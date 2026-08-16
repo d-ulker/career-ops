@@ -60,6 +60,22 @@ type Catalog struct {
 	WeeklyTitle     string
 	ActiveInfo      string
 
+	// Stats screen
+	StatsTitle     string
+	StatsSummary   string
+	ArchetypeTitle string
+	WorkModeTitle  string
+	LocationTitle  string
+	PayTitle       string
+	ColArchetype   string
+	ColCount       string
+	ColAvgScore    string
+	PayCount       string
+	PayAvg         string
+	PayMedian      string
+	PayMax         string
+	PaySourceSplit string
+
 	// Relative dates
 	TimeToday     string
 	TimeYesterday string
@@ -97,6 +113,7 @@ type Catalog struct {
 	HelpColumns    string
 	HelpView       string
 	HelpProgress   string
+	HelpStats      string
 	HelpQuit       string
 	HelpScroll     string
 	HelpPage       string
@@ -275,6 +292,22 @@ var En = Catalog{
 	WeeklyTitle:     "Weekly Activity",
 	ActiveInfo:      "%d active applications | %d total offers",
 
+	// Stats screen
+	StatsTitle:     "SEARCH STATS",
+	StatsSummary:   "%d evaluated | %d archetypes",
+	ArchetypeTitle: "By Archetype",
+	WorkModeTitle:  "By Work Mode",
+	LocationTitle:  "By Location",
+	PayTitle:       "Pay Range (posted top, $)",
+	ColArchetype:   "ARCHETYPE",
+	ColCount:       "COUNT",
+	ColAvgScore:    "AVG FIT",
+	PayCount:       "Data points: ",
+	PayAvg:         "Avg: ",
+	PayMedian:      "Median: ",
+	PayMax:         "Max: ",
+	PaySourceSplit: "%d posted, %d estimated",
+
 	// Relative dates
 	TimeToday:     "today",
 	TimeYesterday: "yesterday",
@@ -312,6 +345,7 @@ var En = Catalog{
 	HelpColumns:    " columns  ",
 	HelpView:       " view  ",
 	HelpProgress:   " progress  ",
+	HelpStats:      " stats  ",
 	HelpQuit:       " quit",
 	HelpScroll:     " scroll  ",
 	HelpPage:       " page  ",
@@ -404,6 +438,22 @@ var Tr = Catalog{
 	WeeklyTitle:     "Haftalık Aktivite",
 	ActiveInfo:      "%d aktif başvuru | %d toplam teklif",
 
+	// Stats screen
+	StatsTitle:     "TAKİP İSTATİSTİKLERİ",
+	StatsSummary:   "%d değerlendirildi | %d arketip",
+	ArchetypeTitle: "Arketipe Göre",
+	WorkModeTitle:  "Çalışma Şekline Göre",
+	LocationTitle:  "Konuma Göre",
+	PayTitle:       "Ücret Aralığı (ilan üst sınırı, $)",
+	ColArchetype:   "ARKETİP",
+	ColCount:       "SAYI",
+	ColAvgScore:    "ORT. UYUM",
+	PayCount:       "Veri noktası: ",
+	PayAvg:         "Ort: ",
+	PayMedian:      "Medyan: ",
+	PayMax:         "Maks: ",
+	PaySourceSplit: "%d ilan, %d tahmini",
+
 	// Relative dates
 	TimeToday:     "bugün",
 	TimeYesterday: "dün",
@@ -441,6 +491,7 @@ var Tr = Catalog{
 	HelpColumns:    " sütunlar  ",
 	HelpView:       " görünüm  ",
 	HelpProgress:   " ilerleme  ",
+	HelpStats:      " istatistik  ",
 	HelpQuit:       " çıkış",
 	HelpScroll:     " kaydır  ",
 	HelpPage:       " sayfa  ",
@@ -533,6 +584,22 @@ var Es = Catalog{
 	WeeklyTitle:     "Actividad semanal",
 	ActiveInfo:      "%d solicitudes activas | %d ofertas totales",
 
+	// Stats screen
+	StatsTitle:     "ESTADÍSTICAS DE BÚSQUEDA",
+	StatsSummary:   "%d evaluadas | %d arquetipos",
+	ArchetypeTitle: "Por Arquetipo",
+	WorkModeTitle:  "Por Modalidad",
+	LocationTitle:  "Por Ubicación",
+	PayTitle:       "Rango salarial (tope publicado, $)",
+	ColArchetype:   "ARQUETIPO",
+	ColCount:       "CANTIDAD",
+	ColAvgScore:    "AJUSTE PROM",
+	PayCount:       "Puntos de datos: ",
+	PayAvg:         "Prom: ",
+	PayMedian:      "Mediana: ",
+	PayMax:         "Máx: ",
+	PaySourceSplit: "%d publicados, %d estimados",
+
 	// Relative dates
 	TimeToday:     "hoy",
 	TimeYesterday: "ayer",
@@ -570,6 +637,7 @@ var Es = Catalog{
 	HelpColumns:    " columnas  ",
 	HelpView:       " vista  ",
 	HelpProgress:   " progreso  ",
+	HelpStats:      " estadísticas  ",
 	HelpQuit:       " salir",
 	HelpScroll:     " desplazar  ",
 	HelpPage:       " página  ",

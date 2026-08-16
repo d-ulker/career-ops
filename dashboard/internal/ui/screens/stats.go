@@ -59,22 +59,19 @@ func (m StatsModel) Update(msg tea.Msg) (StatsModel, tea.Cmd) {
 		case "q", "esc":
 			return m, func() tea.Msg { return StatsClosedMsg{} }
 		case "t", "T":
-			return m, nil
+			return m, nil // Toggle handled at app level
 		case "j", "down":
 			m.scrollOffset = m.scrollOffset + 1
 		case "k", "up":
-			if m.scrollOffset > 0 {
-				m.scrollOffset = m.scrollOffset - 1
-			}
+			m.scrollOffset = max(0, m.scrollOffset-1)
 		case "pgdown", "ctrl+d":
-			m.scrollOffset = m.scrollOffset + (m.height / 2)
+			m.scrollOffset += m.height / 2
 		case "pgup", "ctrl+u":
-			m.scrollOffset = max(0, m.scrollOffset-(m.height/2))
-		}
+			m.scrollOffset = max(0, m.scrollOffset-m.height/2)
+		} // end inner key switch
 	case tea.WindowSizeMsg:
-		m.width = keyEvent.Width
-		m.height = keyEvent.Height
-	}
+		m.width, m.height = keyEvent.Width, keyEvent.Height
+	} // end outer msg switch
 	return m, nil
 }
 

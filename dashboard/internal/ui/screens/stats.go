@@ -51,28 +51,29 @@ func (m *StatsModel) Resize(width, height int) {
 	m.height = height
 }
 
-// Update handles keyboard navigation and resizing for the stats view.
+// Update processes navigation and input events for the stats analytics dashboard.
 func (m StatsModel) Update(msg tea.Msg) (StatsModel, tea.Cmd) {
-	switch msg := msg.(type) {
+	switch keyEvent := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
+		switch keyEvent.String() {
 		case "q", "esc":
 			return m, func() tea.Msg { return StatsClosedMsg{} }
 		case "t", "T":
-			return m, nil // Language toggle handled globally in appModel
-		case "down", "j":
-			m.scrollOffset++
-		case "up", "k":
+			return m, nil
+		case "j", "down":
+			m.scrollOffset = m.scrollOffset + 1
+		case "k", "up":
 			if m.scrollOffset > 0 {
-				m.scrollOffset--
+				m.scrollOffset = m.scrollOffset - 1
 			}
 		case "pgdown", "ctrl+d":
-			m.scrollOffset += m.height / 2
+			m.scrollOffset = m.scrollOffset + (m.height / 2)
 		case "pgup", "ctrl+u":
-			m.scrollOffset = max(0, m.scrollOffset-m.height/2)
+			m.scrollOffset = max(0, m.scrollOffset-(m.height/2))
 		}
 	case tea.WindowSizeMsg:
-		m.width, m.height = msg.Width, msg.Height
+		m.width = keyEvent.Width
+		m.height = keyEvent.Height
 	}
 	return m, nil
 }

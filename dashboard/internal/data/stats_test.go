@@ -66,44 +66,44 @@ func TestCanonicalizeLocation(t *testing.T) {
 }
 
 func TestComputeStatsMetrics(t *testing.T) {
-	// Sample dataset testing score tiers, work modes, locations, and pay bands
+	// Exercise score tiers, work modes, locations, pay bands, and seniority mix
 	apps := []model.CareerApplication{
 		{
 			Archetype: "Technical AI PM",
-			Score:     4.50,
+			Score:     4.5,
 			WorkMode:  "Remote",
 			Location:  "Berlin",
-			PayMax:    180_000,
+			PayMax:    180000,
 			PaySource: "POSTED",
 			Role:      "Senior Product Manager",
-		},
+		}, // app 1
 		{
 			Archetype: "Senior AI Product Manager",
-			Score:     4.00,
+			Score:     4.0,
 			WorkMode:  "Remote",
 			Location:  "Berlin",
-			PayMax:    200_000,
+			PayMax:    200000,
 			PaySource: "POSTED",
 			Role:      "Staff ML Engineer",
-		},
+		}, // app 2
 		{
 			Archetype: "Solutions Architect AI",
-			Score:     3.20,
+			Score:     3.2,
 			WorkMode:  "Hybrid",
 			Location:  "Munich",
-			PayMax:    120_000,
+			PayMax:    120000,
 			PaySource: "est",
 			Role:      "Junior Machine Learning Engineer",
-		},
+		}, // app 3
 		{
 			Archetype: "Research Scientist",
-			Score:     2.10,
+			Score:     2.1,
 			WorkMode:  "Onsite",
 			Location:  "Munich",
-			PayMax:    90_000,
+			PayMax:    90000,
 			PaySource: "POSTED",
 			Role:      "Intern AI Researcher",
-		},
+		}, // app 4
 	}
 
 	metrics := ComputeStatsMetrics(apps)

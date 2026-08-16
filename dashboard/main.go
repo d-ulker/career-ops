@@ -183,7 +183,7 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case screens.PipelineOpenProgressMsg:
 		m.progress = screens.NewProgressModel(
-			theme.NewTheme("catppuccin-mocha"),
+			m.theme,
 			m.progressMetrics,
 			m.pipeline.Width(), m.pipeline.Height(),
 		)
@@ -196,7 +196,7 @@ func (m appModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case screens.PipelineOpenStatsMsg:
 		m.stats = screens.NewStatsModel(
-			theme.NewTheme("catppuccin-mocha"),
+			m.theme,
 			m.statsMetrics,
 			m.evaluatedCount,
 			m.pipeline.Width(), m.pipeline.Height(),

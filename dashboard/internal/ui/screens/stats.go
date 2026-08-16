@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
+	"github.com/santifer/career-ops/dashboard/internal/data"
 	"github.com/santifer/career-ops/dashboard/internal/i18n"
 	"github.com/santifer/career-ops/dashboard/internal/model"
 	"github.com/santifer/career-ops/dashboard/internal/theme"
@@ -57,6 +58,8 @@ func (m StatsModel) Update(msg tea.Msg) (StatsModel, tea.Cmd) {
 		switch msg.String() {
 		case "q", "esc":
 			return m, func() tea.Msg { return StatsClosedMsg{} }
+		case "t", "T":
+			return m, nil
 		case "down", "j":
 			m.scrollOffset++
 		case "up", "k":
@@ -83,7 +86,7 @@ func (m StatsModel) View() string {
 	header := m.renderHeader()
 	insights := m.renderInsights()
 	archetypes := m.renderArchetypeChart()
-	pieChart := m.renderPieChart("Fit Quality Distribution", m.metrics.ScoreTiers, []lipgloss.Color{
+	pieChart := m.renderPieChart(i18n.Current.FitQualityDistribution, m.metrics.ScoreTiers, []lipgloss.Color{
 		m.theme.Green,  // Elite (>=4.5)
 		m.theme.Sky,    // Strong (4.0-4.4)
 		m.theme.Yellow, // Viable (3.5-3.9)
@@ -91,7 +94,7 @@ func (m StatsModel) View() string {
 		m.theme.Red,    // Below Bar (<3.0)
 		m.theme.Mauve,
 	})
-	seniorityPieChart := m.renderPieChart("Seniority Mix", m.metrics.SeniorityMix, []lipgloss.Color{
+	seniorityPieChart := m.renderPieChart(i18n.Current.SeniorityMix, m.metrics.SeniorityMix, []lipgloss.Color{
 		m.theme.Mauve,
 		m.theme.Peach,
 		m.theme.Sky,
@@ -99,7 +102,7 @@ func (m StatsModel) View() string {
 		m.theme.Yellow,
 		m.theme.Red,
 	})
-	workModes := m.renderLabelCountTable("By Work Mode", m.metrics.WorkModes)
+	workModes := m.renderLabelCountTable(i18n.Current.WorkModeTitle, m.metrics.WorkModes)
 	locations := m.renderLabelCountTable(i18n.Current.LocationTitle, m.metrics.Locations)
 	pay := m.renderPay()
 	help := m.renderHelp()
@@ -205,11 +208,12 @@ func (m StatsModel) renderHeader() string {
 }
 
 func (m StatsModel) renderInsights() string {
-	if len(m.metrics.Insights) == 0 {
+	insightsList := data.GenerateInsights(m.metrics)
+	if len(insightsList) == 0 {
 		return ""
 	}
 	padStyle := lipgloss.NewStyle().Padding(0, 2)
-	sectionTitle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Yellow).Render("💡 STRATEGIC INSIGHTS")
+	sectionTitle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Yellow).Render("💡 " + i18n.Current.StatsStrategicInsights)
 
 	boxW := m.width - 6
 	if m.width >= 110 {
@@ -224,7 +228,7 @@ func (m StatsModel) renderInsights() string {
 
 	var bulletLines []string
 	bulletLines = append(bulletLines, sectionTitle)
-	for _, ins := range m.metrics.Insights {
+	for _, ins := range insightsList {
 		bullet := lipgloss.NewStyle().Foreground(m.theme.Sky).Render("• ")
 		text := lipgloss.NewStyle().Foreground(m.theme.Text).Render(ins)
 		bulletLines = append(bulletLines, bullet+text)
@@ -236,7 +240,7 @@ func (m StatsModel) renderInsights() string {
 // renderPieChart draws a high-definition radial terminal pie chart with aspect ratio correction and legend
 func (m StatsModel) renderPieChart(title string, stats []model.LabelCountStat, sliceColors []lipgloss.Color) string {
 	padStyle := lipgloss.NewStyle().Padding(0, 2)
-	sectionTitle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Mauve).Render("🎯 " + title)
+	sectionTitle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Mauve).Render(i18n.Current.PieChartSectionTitle(title))
 	dimStyle := lipgloss.NewStyle().Foreground(m.theme.Subtext)
 
 	if len(stats) == 0 {
@@ -304,14 +308,15 @@ func (m StatsModel) renderPieChart(title string, stats []model.LabelCountStat, s
 
 	// Build Legend lines
 	var legendLines []string
-	legendLines = append(legendLines, lipgloss.NewStyle().Bold(true).Foreground(m.theme.Text).Render("Quality Breakdown:"))
+	legendLines = append(legendLines, lipgloss.NewStyle().Bold(true).Foreground(m.theme.Text).Render(i18n.Current.QualityBreakdown))
 	for i, s := range stats {
 		color := m.theme.Text
 		if i < len(sliceColors) {
 			color = sliceColors[i]
 		}
 		bullet := lipgloss.NewStyle().Foreground(color).Render("● ")
-		lbl := lipgloss.NewStyle().Foreground(m.theme.Text).Width(18).Render(s.Label)
+		label := i18n.Current.SeniorityLabel(s.Label)
+		lbl := lipgloss.NewStyle().Foreground(m.theme.Text).Width(18).Render(label)
 		cnt := lipgloss.NewStyle().Foreground(m.theme.Subtext).Render(fmt.Sprintf("%4d (%2.0f%%)", s.Count, s.Pct))
 		legendLines = append(legendLines, bullet+lbl+cnt)
 	}
@@ -324,7 +329,7 @@ func (m StatsModel) renderPieChart(title string, stats []model.LabelCountStat, s
 	}
 	if eliteAndStrong > 0 {
 		summaryBadge := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Green).
-			Render(fmt.Sprintf("✓ %.0f%% meet ≥4.0 bar", eliteAndStrong))
+			Render(fmt.Sprintf(i18n.Current.MeetQualityBar, eliteAndStrong))
 		legendLines = append(legendLines, "", summaryBadge)
 	}
 
@@ -525,7 +530,7 @@ func (m StatsModel) renderPay() string {
 	// 2. Salary Distribution Histogram
 	if len(m.metrics.PayHistogram) > 0 {
 		lines = append(lines, "")
-		histTitle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Peach).Render("Salary Band Distribution:")
+		histTitle := lipgloss.NewStyle().Bold(true).Foreground(m.theme.Peach).Render(i18n.Current.SalaryBandDist)
 		lines = append(lines, padStyle.Render(histTitle))
 
 		maxHist := 0

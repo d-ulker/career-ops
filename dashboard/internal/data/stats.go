@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/santifer/career-ops/dashboard/internal/i18n"
 	"github.com/santifer/career-ops/dashboard/internal/model"
 )
 
@@ -51,6 +52,20 @@ func CanonicalizeArchetype(raw string) string {
 	return "Other / Cross-Functional"
 }
 
+// isFalseCityState checks if extracted strings represent false positive location fragments.
+func isFalseCityState(city, state string) bool {
+	c := strings.ToLower(strings.TrimSpace(city))
+	s := strings.ToUpper(strings.TrimSpace(state))
+	if c == "req" || c == "job" || c == "id" || c == "user" || c == "applicant" ||
+		strings.HasPrefix(c, "req") ||
+		strings.Contains(c, "science") || strings.Contains(c, "department") ||
+		strings.Contains(c, "faculty") || strings.Contains(c, "studies") ||
+		(s == "ID" && (strings.EqualFold(c, "req") || strings.EqualFold(c, "job"))) {
+		return true
+	}
+	return false
+}
+
 // CanonicalizeLocation normalizes casing and eliminates noise strings from location data.
 func CanonicalizeLocation(raw string) string {
 	loc := strings.TrimSpace(raw)
@@ -58,17 +73,12 @@ func CanonicalizeLocation(raw string) string {
 		return ""
 	}
 
-	lower := strings.ToLower(loc)
-	if strings.HasPrefix(lower, "req") || strings.Contains(lower, "science") ||
-		strings.Contains(lower, "department") || strings.Contains(lower, "faculty") ||
-		strings.Contains(lower, "studies") {
-		return ""
-	}
-
-	// Normalise city name casing
 	parts := strings.Split(loc, ",")
 	if len(parts) == 1 {
 		c := strings.ToLower(strings.TrimSpace(parts[0]))
+		if isFalseCityState(c, "") {
+			return ""
+		}
 		switch c {
 		case "berlin":
 			return "Berlin"
@@ -100,7 +110,7 @@ func CanonicalizeLocation(raw string) string {
 	} else if len(parts) == 2 {
 		city := strings.Title(strings.ToLower(strings.TrimSpace(parts[0])))
 		state := strings.ToUpper(strings.TrimSpace(parts[1]))
-		if state == "ID" && (strings.EqualFold(city, "Req") || strings.EqualFold(city, "Job")) {
+		if isFalseCityState(city, state) {
 			return ""
 		}
 		return city + ", " + state
@@ -340,12 +350,13 @@ func ComputeStatsMetrics(apps []model.CareerApplication) model.StatsMetrics {
 	}
 
 	// 6. Automated Insight Captions
-	sm.Insights = generateInsights(sm)
+	sm.Insights = GenerateInsights(sm)
 
 	return sm
 }
 
-func generateInsights(sm model.StatsMetrics) []string {
+// GenerateInsights produces localized strategic insights from metrics.
+func GenerateInsights(sm model.StatsMetrics) []string {
 	var insights []string
 
 	// Volume & Fit insight
@@ -360,10 +371,10 @@ func generateInsights(sm model.StatsMetrics) []string {
 			}
 		}
 		if bestFitScore > 0 && bestFitArch.Label != topArch.Label {
-			insights = append(insights, fmt.Sprintf("Primary volume in %s (%d roles, %.0f%%) · Highest fit in %s (%.1f/5 avg fit)",
+			insights = append(insights, fmt.Sprintf(i18n.Current.InsightVolumeFit,
 				topArch.Label, topArch.Count, topArch.Pct, bestFitArch.Label, bestFitScore))
 		} else {
-			insights = append(insights, fmt.Sprintf("Primary archetype is %s (%d roles, %.0f%% of evaluated pipeline)",
+			insights = append(insights, fmt.Sprintf(i18n.Current.InsightVolumePrimary,
 				topArch.Label, topArch.Count, topArch.Pct))
 		}
 	}
@@ -371,13 +382,13 @@ func generateInsights(sm model.StatsMetrics) []string {
 	// Work Mode insight
 	if len(sm.WorkModes) > 0 {
 		topMode := sm.WorkModes[0]
-		insights = append(insights, fmt.Sprintf("Workplace distribution: %.0f%% of roles operate as %s",
+		insights = append(insights, fmt.Sprintf(i18n.Current.InsightWorkMode,
 			topMode.Pct, topMode.Label))
 	}
 
 	// Pay insight
 	if sm.Pay.Count > 0 {
-		insights = append(insights, fmt.Sprintf("Compensation benchmark: Median top pay is $%.0fK (peak $%.0fK) across %d data points",
+		insights = append(insights, fmt.Sprintf(i18n.Current.InsightPayBenchmark,
 			sm.Pay.MedianPayMax/1000, sm.Pay.MaxPayMax/1000, sm.Pay.Count))
 	}
 
@@ -419,11 +430,11 @@ func deriveSeniority(role string) string {
 	if strings.Contains(r, "staff") || strings.Contains(r, "principal") || strings.Contains(r, "architect") || strings.Contains(r, "founding") {
 		return "Staff / Principal"
 	}
-	if strings.Contains(r, "lead") || strings.Contains(r, "manager") {
-		return "Lead / Manager"
-	}
 	if strings.Contains(r, "senior") || strings.Contains(r, "sr.") || strings.Contains(r, "sr ") {
 		return "Senior"
+	}
+	if strings.Contains(r, "lead") || strings.Contains(r, "manager") {
+		return "Lead / Manager"
 	}
 	if strings.Contains(r, "junior") || strings.Contains(r, "jr.") || strings.Contains(r, "intern") || strings.Contains(r, "student") || strings.Contains(r, "graduate") {
 		return "Junior / Entry"

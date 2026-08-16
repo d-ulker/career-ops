@@ -154,14 +154,23 @@ func deriveNoteFields(app *model.CareerApplication) {
 	// (some tracker rows carry the city there, e.g. "... — Charlotte, NC"). When
 	// no US "City, ST" is present, fall back to an international city/country so
 	// European and other non-US roles still show a Location.
-	if m := reCityState.FindStringSubmatch(app.Notes); m != nil && !isFalseCityState(m[1], m[2]) {
-		app.Location = strings.Title(strings.ToLower(m[1])) + ", " + m[2]
-	} else if m := reCityState.FindStringSubmatch(app.Role); m != nil && !isFalseCityState(m[1], m[2]) {
-		app.Location = strings.Title(strings.ToLower(m[1])) + ", " + m[2]
-	} else if m := reCityIntl.FindString(app.Notes); m != "" {
-		app.Location = strings.Title(strings.ToLower(m))
-	} else if m := reCityIntl.FindString(app.Role); m != "" {
-		app.Location = strings.Title(strings.ToLower(m))
+	if m := reCityState.FindStringSubmatch(app.Notes); m != nil {
+		app.Location = CanonicalizeLocation(m[1] + ", " + m[2])
+	}
+	if app.Location == "" {
+		if m := reCityState.FindStringSubmatch(app.Role); m != nil {
+			app.Location = CanonicalizeLocation(m[1] + ", " + m[2])
+		}
+	}
+	if app.Location == "" {
+		if m := reCityIntl.FindString(app.Notes); m != "" {
+			app.Location = CanonicalizeLocation(m)
+		}
+	}
+	if app.Location == "" {
+		if m := reCityIntl.FindString(app.Role); m != "" {
+			app.Location = CanonicalizeLocation(m)
+		}
 	}
 
 	// Work mode: hybrid beats remote ("Remote/hybrid" means office days exist);
@@ -241,14 +250,4 @@ func deriveNoteFields(app *model.CareerApplication) {
 		}
 	}
 	app.LastContact = last
-}
-
-func isFalseCityState(city, state string) bool {
-	c := strings.ToLower(strings.TrimSpace(city))
-	if c == "req" || c == "job" || c == "id" || c == "user" || c == "applicant" ||
-		strings.Contains(c, "science") || strings.Contains(c, "department") ||
-		strings.Contains(c, "faculty") || strings.Contains(c, "studies") {
-		return true
-	}
-	return false
 }

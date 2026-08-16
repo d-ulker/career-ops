@@ -11,7 +11,7 @@ func TestCanonicalizeArchetype(t *testing.T) {
 		raw      string
 		expected string
 	}{
-		{"Technical AI PM (primary) + AI Platform / LLMOps", "Agentic & Automation"}, // if agentic/automation keyword or AI PM
+		{"Technical AI PM (primary) + AI Platform / LLMOps", "Technical AI PM"},
 		{"Technical AI PM", "Technical AI PM"},
 		{"Senior AI Product Manager", "Technical AI PM"},
 		{"AI Platform / LLMOps", "AI Platform & LLMOps"},
@@ -30,13 +30,6 @@ func TestCanonicalizeArchetype(t *testing.T) {
 
 	for _, tt := range tests {
 		got := CanonicalizeArchetype(tt.raw)
-		if tt.raw == "Technical AI PM (primary) + AI Platform / LLMOps" {
-			// This has Technical AI PM and AI Platform, checks Technical AI PM
-			if got != "Technical AI PM" {
-				t.Errorf("CanonicalizeArchetype(%q) = %q; expected %q", tt.raw, got, "Technical AI PM")
-			}
-			continue
-		}
 		if got != tt.expected {
 			t.Errorf("CanonicalizeArchetype(%q) = %q; expected %q", tt.raw, got, tt.expected)
 		}
@@ -56,7 +49,10 @@ func TestCanonicalizeLocation(t *testing.T) {
 		{"Social Sciences, IN", ""},
 		{"Department of CS", ""},
 		{"Austin, TX", "Austin, TX"},
+		{"austin, tx", "Austin, TX"},
+		{"Job, ID", ""},
 		{"madrid", "Madrid"},
+		{"lisbon", "Lisbon"},
 		{"", ""},
 		{"—", ""},
 	}
@@ -78,6 +74,7 @@ func TestComputeStatsMetrics(t *testing.T) {
 			Location:  "Berlin",
 			PayMax:    180000,
 			PaySource: "POSTED",
+			Role:      "Senior Product Manager",
 		},
 		{
 			Archetype: "Senior AI Product Manager",
@@ -86,22 +83,33 @@ func TestComputeStatsMetrics(t *testing.T) {
 			Location:  "Berlin",
 			PayMax:    200000,
 			PaySource: "POSTED",
+			Role:      "Staff ML Engineer",
 		},
 		{
 			Archetype: "Solutions Architect AI",
-			Score:     4.2,
+			Score:     3.2,
 			WorkMode:  "Hybrid",
 			Location:  "Munich",
-			PayMax:    150000,
+			PayMax:    120000,
 			PaySource: "est",
+			Role:      "Junior Machine Learning Engineer",
+		},
+		{
+			Archetype: "Research Scientist",
+			Score:     2.1,
+			WorkMode:  "Onsite",
+			Location:  "Munich",
+			PayMax:    90000,
+			PaySource: "POSTED",
+			Role:      "Intern AI Researcher",
 		},
 	}
 
 	metrics := ComputeStatsMetrics(apps)
 
-	// Test Archetypes (Technical AI PM and AI Solutions & FDE)
-	if len(metrics.Archetypes) != 2 {
-		t.Fatalf("expected 2 canonical archetypes, got %d", len(metrics.Archetypes))
+	// Test Archetypes (Technical AI PM, AI Solutions & FDE, Research & Academia)
+	if len(metrics.Archetypes) != 3 {
+		t.Fatalf("expected 3 canonical archetypes, got %d", len(metrics.Archetypes))
 	}
 	if metrics.Archetypes[0].Label != "Technical AI PM" || metrics.Archetypes[0].Count != 2 {
 		t.Errorf("expected Technical AI PM count 2, got %+v", metrics.Archetypes[0])
@@ -111,11 +119,8 @@ func TestComputeStatsMetrics(t *testing.T) {
 	}
 
 	// Test WorkModes
-	if len(metrics.WorkModes) != 2 {
-		t.Fatalf("expected 2 work modes, got %d", len(metrics.WorkModes))
-	}
-	if metrics.WorkModes[0].Label != "Remote" || metrics.WorkModes[0].Count != 2 {
-		t.Errorf("expected Remote count 2, got %+v", metrics.WorkModes[0])
+	if len(metrics.WorkModes) != 3 {
+		t.Fatalf("expected 3 work modes, got %d", len(metrics.WorkModes))
 	}
 
 	// Test Locations
@@ -124,11 +129,11 @@ func TestComputeStatsMetrics(t *testing.T) {
 	}
 
 	// Test Pay Stats
-	if metrics.Pay.Count != 3 {
-		t.Errorf("expected pay count 3, got %d", metrics.Pay.Count)
+	if metrics.Pay.Count != 4 {
+		t.Errorf("expected pay count 4, got %d", metrics.Pay.Count)
 	}
-	if metrics.Pay.PostedCount != 2 {
-		t.Errorf("expected posted count 2, got %d", metrics.Pay.PostedCount)
+	if metrics.Pay.PostedCount != 3 {
+		t.Errorf("expected posted count 3, got %d", metrics.Pay.PostedCount)
 	}
 	if metrics.Pay.EstCount != 1 {
 		t.Errorf("expected est count 1, got %d", metrics.Pay.EstCount)
@@ -136,13 +141,84 @@ func TestComputeStatsMetrics(t *testing.T) {
 	if metrics.Pay.MaxPayMax != 200000 {
 		t.Errorf("expected max pay 200000, got %f", metrics.Pay.MaxPayMax)
 	}
-	if metrics.Pay.MedianPayMax != 180000 {
-		t.Errorf("expected median pay 180000, got %f", metrics.Pay.MedianPayMax)
+	if metrics.Pay.MedianPayMax != 150000 {
+		t.Errorf("expected median pay 150000, got %f", metrics.Pay.MedianPayMax)
 	}
 
 	// Test Pay Histogram
 	if len(metrics.PayHistogram) != 5 {
-		t.Errorf("expected 5 salary histogram bands, got %d", len(metrics.PayHistogram))
+		t.Fatalf("expected 5 salary histogram bands, got %d", len(metrics.PayHistogram))
+	}
+
+	expectedPayCounts := map[string]int{
+		"< $100K":       1,
+		"$100K - $140K": 1,
+		"$140K - $180K": 1,
+		"$180K - $220K": 1,
+		"$220K+":        0,
+	}
+	for _, band := range metrics.PayHistogram {
+		expectedCount, ok := expectedPayCounts[band.Label]
+		if !ok {
+			t.Errorf("unexpected pay band label %q", band.Label)
+			continue
+		}
+		if band.Count != expectedCount {
+			t.Errorf("PayHistogram[%q].Count = %d; expected %d", band.Label, band.Count, expectedCount)
+		}
+		expectedPct := float64(expectedCount) / 4.0 * 100.0
+		if band.Pct < expectedPct-0.01 || band.Pct > expectedPct+0.01 {
+			t.Errorf("PayHistogram[%q].Pct = %f; expected ~%f", band.Label, band.Pct, expectedPct)
+		}
+	}
+
+	// Test Score Tiers
+	if len(metrics.ScoreTiers) == 0 {
+		t.Fatalf("expected non-empty ScoreTiers")
+	}
+	expectedTierCounts := map[string]int{
+		"Elite (≥4.5)":       1, // 4.5
+		"Strong (4.0-4.4)":   1, // 4.0
+		"Moderate (3.0-3.4)": 1, // 3.2
+		"Below Bar (<3.0)":   1, // 2.1
+	}
+	for _, tier := range metrics.ScoreTiers {
+		expectedCount, ok := expectedTierCounts[tier.Label]
+		if !ok {
+			t.Errorf("unexpected ScoreTier label %q", tier.Label)
+			continue
+		}
+		if tier.Count != expectedCount {
+			t.Errorf("ScoreTier[%q].Count = %d; expected %d", tier.Label, tier.Count, expectedCount)
+		}
+		expectedPct := float64(expectedCount) / 4.0 * 100.0
+		if tier.Pct < expectedPct-0.01 || tier.Pct > expectedPct+0.01 {
+			t.Errorf("ScoreTier[%q].Pct = %f; expected ~%f", tier.Label, tier.Pct, expectedPct)
+		}
+	}
+
+	// Test Seniority Mix
+	if len(metrics.SeniorityMix) == 0 {
+		t.Fatalf("expected non-empty SeniorityMix")
+	}
+	expectedSeniorityCounts := map[string]int{
+		"Senior":            1, // Senior Product Manager
+		"Staff / Principal": 1, // Staff ML Engineer
+		"Junior / Entry":    2, // Junior Machine Learning Engineer, Intern AI Researcher
+	}
+	for _, mix := range metrics.SeniorityMix {
+		expectedCount, ok := expectedSeniorityCounts[mix.Label]
+		if !ok {
+			t.Errorf("unexpected SeniorityMix label %q", mix.Label)
+			continue
+		}
+		if mix.Count != expectedCount {
+			t.Errorf("SeniorityMix[%q].Count = %d; expected %d", mix.Label, mix.Count, expectedCount)
+		}
+		expectedPct := float64(expectedCount) / 4.0 * 100.0
+		if mix.Pct < expectedPct-0.01 || mix.Pct > expectedPct+0.01 {
+			t.Errorf("SeniorityMix[%q].Pct = %f; expected ~%f", mix.Label, mix.Pct, expectedPct)
+		}
 	}
 
 	// Test Insights

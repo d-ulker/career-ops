@@ -51,7 +51,7 @@ func (m *StatsModel) Resize(width, height int) {
 	m.height = height
 }
 
-// Update handles input for the stats screen.
+// Update handles keyboard and window resize input for the stats screen.
 func (m StatsModel) Update(msg tea.Msg) (StatsModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -59,12 +59,13 @@ func (m StatsModel) Update(msg tea.Msg) (StatsModel, tea.Cmd) {
 		case "q", "esc":
 			return m, func() tea.Msg { return StatsClosedMsg{} }
 		case "t", "T":
+			// Handled globally in main; no-op here to prevent double toggling
 			return m, nil
 		case "down", "j":
-			m.scrollOffset++
+			m.scrollOffset += 1
 		case "up", "k":
 			if m.scrollOffset > 0 {
-				m.scrollOffset--
+				m.scrollOffset -= 1
 			}
 		case "pgdown", "ctrl+d":
 			m.scrollOffset += m.height / 2

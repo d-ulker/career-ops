@@ -11,27 +11,27 @@ func TestCanonicalizeArchetype(t *testing.T) {
 		raw      string
 		expected string
 	}{
-		{"Technical AI PM (primary) + AI Platform / LLMOps", "Technical AI PM"},
-		{"Technical AI PM", "Technical AI PM"},
-		{"Senior AI Product Manager", "Technical AI PM"},
-		{"AI Platform / LLMOps", "AI Platform & LLMOps"},
-		{"Agentic Automation Engineer", "Agentic & Automation"},
-		{"Solutions Architect AI", "AI Solutions & FDE"},
-		{"ML Engineer / Applied AI", "AI & ML Engineering"},
-		{"Digital Transformation Consultant", "AI Transformation & Governance"},
-		{"Data Governance Specialist", "AI Transformation & Governance"},
-		{"Senior Data Engineer", "Data & Analytics"},
-		{"IT Support Specialist", "IT & Technical Operations"},
-		{"Wissenschaftliche Mitarbeiterin", "Research & Academia"},
-		{"None", "Unclassified"},
-		{"Unknown", "Unclassified"},
-		{"random other role", "Other / Cross-Functional"},
+		{raw: "Technical AI PM (primary) + AI Platform / LLMOps", expected: "Technical AI PM"},
+		{raw: "Technical AI PM", expected: "Technical AI PM"},
+		{raw: "Senior AI Product Manager", expected: "Technical AI PM"},
+		{raw: "AI Platform / LLMOps", expected: "AI Platform & LLMOps"},
+		{raw: "Agentic Automation Engineer", expected: "Agentic & Automation"},
+		{raw: "Solutions Architect AI", expected: "AI Solutions & FDE"},
+		{raw: "ML Engineer / Applied AI", expected: "AI & ML Engineering"},
+		{raw: "Digital Transformation Consultant", expected: "AI Transformation & Governance"},
+		{raw: "Data Governance Specialist", expected: "AI Transformation & Governance"},
+		{raw: "Senior Data Engineer", expected: "Data & Analytics"},
+		{raw: "IT Support Specialist", expected: "IT & Technical Operations"},
+		{raw: "Wissenschaftliche Mitarbeiterin", expected: "Research & Academia"},
+		{raw: "None", expected: "Unclassified"},
+		{raw: "Unknown", expected: "Unclassified"},
+		{raw: "random other role", expected: "Other / Cross-Functional"},
 	}
 
 	for _, tt := range tests {
 		got := CanonicalizeArchetype(tt.raw)
 		if got != tt.expected {
-			t.Errorf("CanonicalizeArchetype(%q) = %q; expected %q", tt.raw, got, tt.expected)
+			t.Errorf("CanonicalizeArchetype(%q) = %q, want %q", tt.raw, got, tt.expected)
 		}
 	}
 }
@@ -41,65 +41,66 @@ func TestCanonicalizeLocation(t *testing.T) {
 		raw      string
 		expected string
 	}{
-		{"berlin", "Berlin"},
-		{"Berlin", "Berlin"},
-		{"Munich", "Munich"},
-		{"münchen", "Munich"},
-		{"Req, ID", ""},
-		{"Social Sciences, IN", ""},
-		{"Department of CS", ""},
-		{"Austin, TX", "Austin, TX"},
-		{"austin, tx", "Austin, TX"},
-		{"Job, ID", ""},
-		{"madrid", "Madrid"},
-		{"lisbon", "Lisbon"},
-		{"", ""},
-		{"—", ""},
+		{raw: "berlin", expected: "Berlin"},
+		{raw: "Berlin", expected: "Berlin"},
+		{raw: "Munich", expected: "Munich"},
+		{raw: "münchen", expected: "Munich"},
+		{raw: "Req, ID", expected: ""},
+		{raw: "Social Sciences, IN", expected: ""},
+		{raw: "Department of CS", expected: ""},
+		{raw: "Austin, TX", expected: "Austin, TX"},
+		{raw: "austin, tx", expected: "Austin, TX"},
+		{raw: "Job, ID", expected: ""},
+		{raw: "madrid", expected: "Madrid"},
+		{raw: "lisbon", expected: "Lisbon"},
+		{raw: "", expected: ""},
+		{raw: "—", expected: ""},
 	}
 
 	for _, tt := range tests {
 		got := CanonicalizeLocation(tt.raw)
 		if got != tt.expected {
-			t.Errorf("CanonicalizeLocation(%q) = %q; expected %q", tt.raw, got, tt.expected)
+			t.Errorf("CanonicalizeLocation(%q) = %q, want %q", tt.raw, got, tt.expected)
 		}
 	}
 }
 
 func TestComputeStatsMetrics(t *testing.T) {
+	// Sample dataset testing score tiers, work modes, locations, and pay bands
 	apps := []model.CareerApplication{
 		{
 			Archetype: "Technical AI PM",
-			Score:     4.5,
+			Score:     4.50,
 			WorkMode:  "Remote",
 			Location:  "Berlin",
-			PayMax:    180000,
+			PayMax:    180_000,
 			PaySource: "POSTED",
 			Role:      "Senior Product Manager",
 		},
 		{
 			Archetype: "Senior AI Product Manager",
-			Score:     4.0,
+			Score:     4.00,
 			WorkMode:  "Remote",
 			Location:  "Berlin",
-			PayMax:    200000,
+			PayMax:    200_000,
 			PaySource: "POSTED",
 			Role:      "Staff ML Engineer",
 		},
 		{
 			Archetype: "Solutions Architect AI",
-			Score:     3.2,
+			Score:     3.20,
 			WorkMode:  "Hybrid",
 			Location:  "Munich",
-			PayMax:    120000,
+			PayMax:    120_000,
 			PaySource: "est",
 			Role:      "Junior Machine Learning Engineer",
 		},
 		{
 			Archetype: "Research Scientist",
-			Score:     2.1,
+			Score:     2.10,
 			WorkMode:  "Onsite",
 			Location:  "Munich",
-			PayMax:    90000,
+			PayMax:    90_000,
 			PaySource: "POSTED",
 			Role:      "Intern AI Researcher",
 		},

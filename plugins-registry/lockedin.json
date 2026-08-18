@@ -1,0 +1,14 @@
+{
+  "id": "lockedin",
+  "name": "career-ops-plugin-lockedin",
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Prepares the LockedIn AI environment for interview screening calls.",
+  "repo": "https://github.com/uelkerd/career-ops-plugin-lockedin",
+  "sha": "da684ad3e97056cab5cdeba8a1b48f32ff867280",
+  "hooks": ["ingest"],
+  "requiredEnv": [],
+  "allowedHosts": [],
+  "registrationIssue": "",
+  "addedAt": "2026-07-20"
+}
